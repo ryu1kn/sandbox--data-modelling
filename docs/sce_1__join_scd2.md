@@ -11,7 +11,7 @@ dbt build
 ```mermaid
 gantt
     dateFormat  YYYY-MM-DD
-    title       Dimensions SCD2
+    title       Join SCD2 tables
 
     section scd2_table1
         dim1-a : done,   des1_1, 2023-01-01, 2023-01-03
