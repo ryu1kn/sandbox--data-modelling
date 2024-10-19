@@ -1,7 +1,7 @@
 with
-    scd2_table1 as (select * from {{ ref('scd2_table1') }}),
-    scd2_table2 as (select * from {{ ref('scd2_table2') }}),
-    scd2_table3 as (select * from {{ ref('scd2_table3') }}),
+    scd2_table1 as (select * from {{ ref('sce_1__table1_scd2') }}),
+    scd2_table2 as (select * from {{ ref('sce_1__table2_scd2') }}),
+    scd2_table3 as (select * from {{ ref('sce_1__table3_scd2') }}),
 
     prep1 as (
         select

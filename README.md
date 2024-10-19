@@ -20,6 +20,12 @@ uv pip install -r requirements.txt
 dbt build
 ```
 
+## Scenarios
+
+Subprojects (we call them scenarios) have their directories prefixed with `sce_N__` (abbreviation for "scenario N").
+
+For more details, refer to each scenario's [docs](/docs).
+
 ## Upgrading dependencies
 
 ```sh

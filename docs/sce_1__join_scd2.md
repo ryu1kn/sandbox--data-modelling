@@ -1,4 +1,4 @@
-# SCD2 joins
+# Scenario 1: Join SCD2
 
 https://infinitelambda.com/multitable-scd2-joins/
 

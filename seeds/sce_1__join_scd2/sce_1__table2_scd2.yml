@@ -2,11 +2,11 @@ version: 2
 
 seeds:
 
-  - name: scd2_table3
+  - name: sce_1__table2_scd2
     columns:
       - name: pk
         data_type: varchar
-      - name: dim3
+      - name: dim2
         data_type: varchar
       - name: valid_from
         data_type: timestamp

@@ -2,7 +2,7 @@ version: 2
 
 seeds:
 
-  - name: scd2_table1
+  - name: sce_1__table1_scd2
     columns:
       - name: pk
         data_type: varchar
