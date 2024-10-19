@@ -1,0 +1,7 @@
+sandbox__data_modelling:
+  outputs:
+    dev:
+      type: duckdb
+      path: dev.duckdb
+      threads: 1
+  target: dev

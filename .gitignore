@@ -1,0 +1,9 @@
+/.idea/
+/.venv/
+/*.duckdb
+
+# dbt related files
+/.user.yml
+/target/
+/dbt_packages/
+/logs/
