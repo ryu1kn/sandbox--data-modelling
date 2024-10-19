@@ -1,0 +1,14 @@
+version: 2
+
+seeds:
+
+  - name: scd2_table2
+    columns:
+      - name: pk
+        data_type: varchar
+      - name: dim2
+        data_type: varchar
+      - name: valid_from
+        data_type: timestamp
+      - name: valid_to
+        data_type: timestamp

@@ -31,6 +31,10 @@ clean-targets:         # directories to be removed by `dbt clean`
 # files using the `{{ config(...) }}` macro.
 models:
   sandbox__data_modelling:
-    # Config indicated by + and applies to all files under models/example/
-    example:
-      +materialized: view
+    proj_scd2_joins:
+      +schema: proj_scd2_joins
+
+seeds:
+  sandbox__data_modelling:
+    proj_scd2_joins:
+      +schema: proj_scd2_joins
