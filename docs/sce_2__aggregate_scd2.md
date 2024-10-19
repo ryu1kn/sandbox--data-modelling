@@ -17,6 +17,11 @@ select group_id, sum(val) from sce_2__table group by all;
 
 We need to re-slice each record with regard to the grouping column, and then do the aggregation.
 
+Notice there is consecutive `a.(4)` from `2023-01-03` to `2023-01-06`. To merge these records
+into one, we need to re-calculate the validity range after the aggregation.
+
+See [Scenario 3](./sce_3__qualify_scd2.md).
+
 ## Setup
 
 ```sh
@@ -29,28 +34,28 @@ gantt
     title       Aggregate SCD2 data
 
     section sce_2__table_scd2
-        id1,a,(1) : done, 2023-01-01, 2023-01-03
-        id1,a,(3) : done, 2023-01-03, 2023-01-04
-        id1,a,(2) : done, 2023-01-04, 2023-01-07
-        id1,a,(4) : done, 2023-01-07, 2023-01-09
-        id1,a,(5) : active, 2023-01-09, 2023-01-11
-        id2,a,(1) : done, 2023-01-02, 2023-01-05
-        id2,a,(3) : done, 2023-01-05, 2023-01-06
-        id2,a,(2) : active, 2023-01-06, 2023-01-11
-        id3,b,(1) : done, 2023-01-03, 2023-01-05
-        id3,b,(1) : active, 2023-01-05, 2023-01-11
+        id_1,a,(1) : done, 2023-01-01, 2023-01-03
+        id_1,a,(3) : done, 2023-01-03, 2023-01-05
+        id_1,a,(2) : done, 2023-01-05, 2023-01-07
+        id_1,a,(4) : done, 2023-01-07, 2023-01-09
+        id_1,a,(5) : done, 2023-01-09, 2023-01-11
+        id_2,a,(1) : done, 2023-01-02, 2023-01-05
+        id_2,a,(2) : done, 2023-01-05, 2023-01-06
+        id_2,a,(3) : done, 2023-01-06, 2023-01-11
+        id_3,b,(1) : done, 2023-01-03, 2023-01-05
+        id_3,b,(1) : done, 2023-01-05, 2023-01-11
 
     section sce_2__sum
         a,(1) : done, 2023-01-01, 2023-01-02
         a,(2) : done, 2023-01-02, 2023-01-03
-        a,(4) : done, 2023-01-03, 2023-01-04
-        a,(3) : done, 2023-01-04, 2023-01-05
-        a,(5) : done, 2023-01-05, 2023-01-06
-        a,(4) : done, 2023-01-06, 2023-01-07
-        a,(6) : done, 2023-01-07, 2023-01-09
-        a,(7) : active, 2023-01-09, 2023-01-11
+        a,(4) : done, 2023-01-03, 2023-01-05
+        a,(4) : done, 2023-01-05, 2023-01-06
+        a,(5) : done, 2023-01-06, 2023-01-07
+        a,(7) : done, 2023-01-07, 2023-01-09
+        a,(8) : done, 2023-01-09, 2023-01-11
         b,(1) : done, 2023-01-03, 2023-01-05
-        b,(1) : active, 2023-01-05, 2023-01-11
+        b,(1) : done, 2023-01-05, 2023-01-11
+
 ```
 
 ## Generating mermaid Gantt chart sections

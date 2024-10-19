@@ -3,8 +3,10 @@ with
         select
             department,
             valid_from,
-            coalesce(lead(valid_from) over(partition by department order by valid_from), '9999-12-31'::date) as valid_to
+            coalesce(lead(valid_from) over w, '9999-12-31'::date) as valid_to
         from {{ ref('sce_3__employees_scd2') }}
+        window w as (partition by department order by valid_from)
+        qualify (lead(valid_from) over w) is distinct from valid_from
     ),
     records_re_sliced_w_new_timeline as (
         select timeline.*, orig.* exclude (department, valid_from, valid_to)
@@ -30,11 +32,7 @@ with
             lag(department) over(partition by department order by valid_from) as prev_department,
             lag(num_feedback_provided) over(partition by department order by valid_from) as prev_num_feedback_provided,
         from department_tops
-    ),
-    department_tops_wo_dup_records as (
-        select *
-        from department_tops_w_prev_values
-        where employee_id is distinct from prev_employee_id
+        qualify employee_id is distinct from prev_employee_id
             or department is distinct from prev_department
             or num_feedback_provided is distinct from prev_num_feedback_provided
     ),
@@ -45,7 +43,7 @@ with
             num_feedback_provided,
             valid_from,
             lead(valid_from) over(partition by department order by valid_from) as valid_to
-        from department_tops_wo_dup_records
+        from department_tops_w_prev_values
     )
 select * from final
 order by department, valid_from, employee_id
