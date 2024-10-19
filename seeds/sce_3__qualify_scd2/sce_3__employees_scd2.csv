@@ -1,0 +1,10 @@
+employee_id,department,num_feedback_provided,valid_from,valid_to
+1,Marketing,1,2023-01-01,2023-01-04
+2,Marketing,1,2023-01-02,2023-01-05
+1,Marketing,2,2023-01-04,2023-01-07
+2,Marketing,3,2023-01-05,2023-01-06
+2,Marketing,4,2023-01-06,9999-12-31
+1,Marketing,3,2023-01-07,2023-01-09
+1,Marketing,5,2023-01-09,9999-12-31
+3,Sales,1,2023-01-03,2023-01-05
+3,Sales,3,2023-01-05,9999-12-31

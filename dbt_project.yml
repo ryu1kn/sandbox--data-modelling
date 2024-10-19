@@ -32,6 +32,8 @@ models:
       +schema: sce_1__join_scd2
     sce_2__aggregate_scd2:
       +schema: sce_2__aggregate_scd2
+    sce_3__qualify_scd2:
+      +schema: sce_3__qualify_scd2
 
 seeds:
   sandbox__data_modelling:
@@ -39,3 +41,5 @@ seeds:
       +schema: sce_1__join_scd2
     sce_2__aggregate_scd2:
       +schema: sce_2__aggregate_scd2
+    sce_3__qualify_scd2:
+      +schema: sce_3__qualify_scd2
