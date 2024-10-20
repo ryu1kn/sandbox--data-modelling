@@ -26,15 +26,13 @@ with
 
     -- Rest is to clean up (merge) SCD2 validity ranges
     department_tops_w_prev_values as (
-        select
-            *,
-            lag(employee_id) over(partition by department order by valid_from) as prev_employee_id,
-            lag(department) over(partition by department order by valid_from) as prev_department,
-            lag(num_feedback_provided) over(partition by department order by valid_from) as prev_num_feedback_provided,
+        select *
         from department_tops
-        qualify employee_id is distinct from prev_employee_id
-            or department is distinct from prev_department
-            or num_feedback_provided is distinct from prev_num_feedback_provided
+        window w as (partition by department order by valid_from)
+        qualify
+            (lag(employee_id) over w) is distinct from employee_id
+            or (lag(department) over w) is distinct from department
+            or (lag(num_feedback_provided) over w) is distinct from num_feedback_provided
     ),
     final as (
         select
@@ -42,7 +40,7 @@ with
             department,
             num_feedback_provided,
             valid_from,
-            lead(valid_from) over(partition by department order by valid_from) as valid_to
+            lead(valid_from) over (partition by department order by valid_from) as valid_to
         from department_tops_w_prev_values
     )
 select * from final
