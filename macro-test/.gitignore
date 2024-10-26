@@ -1,11 +1,6 @@
-/.idea/
-/.venv/
-/*.duckdb
-/*.duckdb.wal
-
 # dbt related files
 /.user.yml
 /target/
 /dbt_packages/
-/logs/
 /package-lock.yml
+/logs/

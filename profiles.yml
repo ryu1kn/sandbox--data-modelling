@@ -5,3 +5,11 @@ sandbox__data_modelling:
       path: dev.duckdb
       threads: 1
   target: dev
+
+macro_test:
+  outputs:
+    test:
+      type: duckdb
+      path: test.duckdb
+      threads: 1
+  target: test

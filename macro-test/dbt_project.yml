@@ -1,0 +1,17 @@
+
+name: 'macro_test'
+version: '1.0.0'
+
+profile: 'macro_test'
+
+model-paths: ["models"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+flags:
+  send_anonymous_usage_stats: False
+  use_colors: True
+
+models: {}
