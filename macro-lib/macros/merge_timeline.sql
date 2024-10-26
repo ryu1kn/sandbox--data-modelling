@@ -1,19 +1,42 @@
 {% macro merge_timeline(relation, partition_by, unique_columns) %}
-with
-    department_tops_w_prev_values as (
-        select
-            * exclude valid_to,
-            lead(valid_to) over w as valid_to,
-        from {{ relation }}
-        window w as (partition by {{ partition_by }} order by valid_from)
-
-        -- Keep the record if any of unique_columns values are different from
-        -- the previous record (when sorted by valid_from
-        qualify
-            (lag({{ partition_by }}) over w) is distinct from {{ partition_by }}
-            {% for column in unique_columns -%}
-            or (lag({{ column }}) over w) is distinct from {{ column }}
-            {% endfor %}
-    )
-select * from department_tops_w_prev_values
+with Periods as (
+    select
+        id,
+        val,
+        category,
+        valid_from,
+        valid_to,
+        -- Identify the start of a new category of adjacent periods
+        case
+            when valid_from = LAG(valid_to) over (partition by id, val, category order by valid_from) then 0
+            else 1
+        end as is_new_category
+    from
+        {{ relation }}
+),
+categorys as (
+    select
+        id,
+        val,
+        category,
+        valid_from,
+        valid_to,
+        -- Create a category identifier based on the cumulative sum of new categorys
+        sum(is_new_category) over (partition by id, val, category order by valid_from) as grp
+    from
+        Periods
+)
+select
+    id,
+    val,
+    category,
+    min(valid_from) as valid_from,
+    max(valid_to)   as valid_to
+from categorys
+group by id,
+    val,
+    category,
+    grp
+order by id,
+    valid_from
 {% endmacro %}
