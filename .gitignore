@@ -1,7 +1,9 @@
 /.idea/
+
 /.venv/
 /*.duckdb
 /*.duckdb.wal
+*.iml
 
 # dbt related files
 /.user.yml
