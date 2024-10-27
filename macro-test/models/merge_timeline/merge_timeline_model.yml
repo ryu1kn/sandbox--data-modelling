@@ -9,6 +9,11 @@ sources:
     tables:
       - name: numbers
 
+  - name: src_fixture
+    database: test
+    tables:
+      - name: data
+
 unit_tests:
   - name: merge_two_periods
     model: merge_timeline_model
@@ -55,3 +60,28 @@ unit_tests:
       rows:
         - {id: 1, val: 1, category: 'a', valid_from: '2024-01-01', valid_to: '2024-01-05'}
         - {id: 1, val: 1, category: 'a', valid_from: '2024-01-07', valid_to: '2024-01-09'}
+
+  - name: merge_periods_with_subset_of_columns
+    model: pass_through_model
+    given:
+      - input: source('src_fixture', 'data')
+        format: sql
+        rows: |
+          {% raw %}
+          with data as (
+            select * from values
+              (1, 1, 'a', '2024-01-01' :: date, '2024-01-03' :: date),
+              (1, 2, 'a', '2024-01-03',         '2024-01-05'),
+              (2, 1, 'a', '2024-01-05',         '2024-01-07'),
+              (1, 1, 'a', '2024-01-07',         '2024-01-09'),
+              as t(id, val, category, valid_from, valid_to)
+          )
+          select * from (
+            {{ macro_lib.merge_timeline(relation="data", partition_by=["category", "val"]) }}
+          )
+          {% endraw %}
+    expect:
+      rows:
+        - {val: 1, category: 'a', valid_from: '2024-01-01', valid_to: '2024-01-03'}
+        - {val: 2, category: 'a', valid_from: '2024-01-03', valid_to: '2024-01-05'}
+        - {val: 1, category: 'a', valid_from: '2024-01-05', valid_to: '2024-01-09'}
