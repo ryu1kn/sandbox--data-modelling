@@ -20,8 +20,8 @@ unit_tests:
           select * from (
             {% call(split_scd2) macro_lib.aggregate_on_scd2(
                 relation='data',
-                group_by=['group_id'],
-                repartition_by=['summed_val'],
+                split_by=['group_id'],
+                merge_by=['group_id', 'summed_val'],
             ) %}
               select
                 group_id,
@@ -61,8 +61,8 @@ unit_tests:
           select * from (
             {% call(split_scd2) macro_lib.aggregate_on_scd2(
                 relation='data',
-                group_by=['department'],
-                repartition_by=['employee_id', 'num_feedback_provided'],
+                split_by=['department'],
+                merge_by=['department', 'employee_id', 'num_feedback_provided'],
             ) %}
               select *
               from {{ split_scd2 }}
