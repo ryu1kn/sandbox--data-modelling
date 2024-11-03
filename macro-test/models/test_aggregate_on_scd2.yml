@@ -8,20 +8,6 @@ unit_tests:
         format: sql
         rows: |
           {% raw %}
-
-          {% set agg_in_scd1 %}
-          select
-            group_id,
-            sum(val) as summed_val,
-            valid_from,
-            valid_to,
-          from records_re_sliced_w_new_timeline
-          group by
-            group_id,
-            valid_from,
-            valid_to
-          {% endset %}
-
           with data as (
             select * from values
               (1, 1, 'a', '2024-01-02' :: date, '2024-01-03' :: date),
@@ -32,13 +18,23 @@ unit_tests:
               as t(id, val, group_id, valid_from, valid_to)
           )
           select * from (
-            {{ macro_lib.aggregate_on_scd2(
+            {% call(split_scd2) macro_lib.aggregate_on_scd2(
                 relation='data',
                 group_by=['group_id'],
-                transform_scd1=agg_in_scd1,
                 repartition_by=['summed_val'],
-            ) }}
-          )
+            ) %}
+              select
+                group_id,
+                sum(val) as summed_val,
+                valid_from,
+                valid_to,
+              from {{ split_scd2 }}
+              group by
+                group_id,
+                valid_from,
+                valid_to
+                {% endcall %}
+              )
           {% endraw %}
     expect:
       rows:
@@ -52,13 +48,6 @@ unit_tests:
         format: sql
         rows: |
           {% raw %}
-
-          {% set agg_in_scd1 %}
-          select *
-          from records_re_sliced_w_new_timeline
-          qualify row_number() over (partition by department, valid_from order by num_feedback_provided desc, employee_id) = 1
-          {% endset %}
-
           with data as (
             select * from values
               ('e1', 'Marketing', 1, '2024-01-02' :: date, '2024-01-03' :: date),
@@ -70,12 +59,15 @@ unit_tests:
               as t(employee_id, department, num_feedback_provided, valid_from, valid_to)
           )
           select * from (
-            {{ macro_lib.aggregate_on_scd2(
+            {% call(split_scd2) macro_lib.aggregate_on_scd2(
                 relation='data',
                 group_by=['department'],
-                transform_scd1=agg_in_scd1,
                 repartition_by=['employee_id', 'num_feedback_provided'],
-            ) }}
+            ) %}
+              select *
+              from {{ split_scd2 }}
+              qualify row_number() over (partition by department, valid_from order by num_feedback_provided desc, employee_id) = 1
+            {% endcall %}
           )
           {% endraw %}
     expect:
