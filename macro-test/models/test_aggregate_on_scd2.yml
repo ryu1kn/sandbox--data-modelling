@@ -1,0 +1,33 @@
+version: 2
+
+unit_tests:
+  - name: aggregate_on_scd2
+    model: pass_through_model
+    given:
+      - input: source('src_fixture', 'data')
+        format: sql
+        rows: |
+          {% raw %}
+          with data as (
+            select * from values
+              (1, 1, 'a', '2024-01-02' :: date, '2024-01-03' :: date),
+              (1, 3, 'a', '2024-01-03',         '2024-01-05'),
+              (1, 2, 'a', '2024-01-05',         '2024-01-07'),
+              (2, 1, 'a', '2024-01-02',         '2024-01-05'),
+              (2, 2, 'a', '2024-01-05',         '2024-01-07'),
+              as t(id, val, group_id, valid_from, valid_to)
+          )
+          select * from (
+            {{ macro_lib.aggregate_on_scd2(
+                relation='data',
+                group_by=['group_id'],
+                aggregate_expressions=[
+                    ('sum(val)', 'summed_val'),
+                ],
+            ) }}
+          )
+          {% endraw %}
+    expect:
+      rows:
+        - {summed_val: 2, group_id: 'a', valid_from: '2024-01-02', valid_to: '2024-01-03'}
+        - {summed_val: 4, group_id: 'a', valid_from: '2024-01-03', valid_to: '2024-01-07'}
