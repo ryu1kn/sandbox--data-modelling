@@ -4,6 +4,8 @@
  #
  # 1. Split validity periods with regards to the columns you want to group by (split_by).
  # 2. Run the provided transformation (e.g. aggregation) on the split validity periods
+ #    * Here, your select statement receives an SCD2 CTE with the split validity periods
+ #    * Your select statement need to produce an SCD2 (with `valid_from` and `valid_to` columns)
  # 3. Merge adjacent validity periods when merge_by columns are the same
  #}
 {% macro aggregate_on_scd2(relation, split_by, merge_by) %}
