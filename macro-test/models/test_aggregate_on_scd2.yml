@@ -8,6 +8,20 @@ unit_tests:
         format: sql
         rows: |
           {% raw %}
+
+          {% set agg_in_scd1 %}
+          select
+            group_id,
+            sum(val) as summed_val,
+            valid_from,
+            valid_to,
+          from records_re_sliced_w_new_timeline
+          group by
+            group_id,
+            valid_from,
+            valid_to
+          {% endset %}
+
           with data as (
             select * from values
               (1, 1, 'a', '2024-01-02' :: date, '2024-01-03' :: date),
@@ -21,9 +35,8 @@ unit_tests:
             {{ macro_lib.aggregate_on_scd2(
                 relation='data',
                 group_by=['group_id'],
-                aggregate_expressions=[
-                    ('sum(val)', 'summed_val'),
-                ],
+                transform_scd1=agg_in_scd1,
+                repartition_by=['summed_val'],
             ) }}
           )
           {% endraw %}
@@ -31,3 +44,43 @@ unit_tests:
       rows:
         - {summed_val: 2, group_id: 'a', valid_from: '2024-01-02', valid_to: '2024-01-03'}
         - {summed_val: 4, group_id: 'a', valid_from: '2024-01-03', valid_to: '2024-01-07'}
+
+  - name: qualify_on_scd2
+    model: pass_through_model
+    given:
+      - input: source('src_fixture', 'data')
+        format: sql
+        rows: |
+          {% raw %}
+
+          {% set agg_in_scd1 %}
+          select *
+          from records_re_sliced_w_new_timeline
+          qualify row_number() over (partition by department, valid_from order by num_feedback_provided desc, employee_id) = 1
+          {% endset %}
+
+          with data as (
+            select * from values
+              ('e1', 'Marketing', 1, '2024-01-02' :: date, '2024-01-03' :: date),
+              ('e1', 'Marketing', 2, '2024-01-03',         '2024-01-05'),
+              ('e1', 'Marketing', 3, '2024-01-05',         '2024-01-08'),
+              ('e2', 'Marketing', 1, '2024-01-02',         '2024-01-04'),
+              ('e2', 'Marketing', 2, '2024-01-04',         '2024-01-07'),
+              ('e2', 'Marketing', 4, '2024-01-07',         '2024-01-08'),
+              as t(employee_id, department, num_feedback_provided, valid_from, valid_to)
+          )
+          select * from (
+            {{ macro_lib.aggregate_on_scd2(
+                relation='data',
+                group_by=['department'],
+                transform_scd1=agg_in_scd1,
+                repartition_by=['employee_id', 'num_feedback_provided'],
+            ) }}
+          )
+          {% endraw %}
+    expect:
+      rows:
+        - {employee_id: e1, department: Marketing, num_feedback_provided: 1, valid_from: '2024-01-02', valid_to: '2024-01-03'}
+        - {employee_id: e1, department: Marketing, num_feedback_provided: 2, valid_from: '2024-01-03', valid_to: '2024-01-05'}
+        - {employee_id: e1, department: Marketing, num_feedback_provided: 3, valid_from: '2024-01-05', valid_to: '2024-01-07'}
+        - {employee_id: e2, department: Marketing, num_feedback_provided: 4, valid_from: '2024-01-07', valid_to: '2024-01-08'}
