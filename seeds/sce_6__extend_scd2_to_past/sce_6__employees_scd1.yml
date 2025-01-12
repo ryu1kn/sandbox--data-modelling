@@ -1,0 +1,12 @@
+version: 2
+
+seeds:
+
+  - name: sce_6__employees_scd1
+    columns:
+      - name: employee_id
+        data_type: number
+      - name: department
+        data_type: varchar
+      - name: role
+        data_type: varchar

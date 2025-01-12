@@ -1,0 +1,4 @@
+employee_id,department,role,valid_from,valid_to
+1,Engineering,Software Engineer,2023-01-02,2023-01-04
+1,Engineering,Data Engineer,2023-01-04,
+2,Marketing,Marketing Manager,2023-01-03,

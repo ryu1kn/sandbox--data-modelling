@@ -1,0 +1,196 @@
+version: 2
+
+unit_tests:
+  - name: test_extend_scd2_history__different_value_on_prev_day
+    model: pass_through_model
+    given:
+      - input: source('src_fixture', 'data')
+        format: sql
+        rows: |
+          {% raw %}
+          with
+            scd1_prev_day as (
+              select * from values
+                (1, 'a')
+                  as t(id, val)
+            ),
+            scd2_table as (
+              select * from values
+                (1, 'b', '2024-01-02' :: date, '2024-01-03' :: date)
+                  as t(id, val, valid_from, valid_to)
+            )
+          select * from ({{ macro_lib.extend_scd2_history(
+            relation_scd2='scd2_table',
+            relation_scd1='scd1_prev_day',
+            primary_key=['id'],
+            scd1_date='2024-01-01',
+            scd1_cols_to_merge=['id', 'val'],
+            scd2_begin_date='2024-01-02',
+          ) }})
+          {% endraw %}
+    expect:
+      rows:
+        - {id: 1, val: 'a', valid_from: '2024-01-01', valid_to: '2024-01-02'}
+        - {id: 1, val: 'b', valid_from: '2024-01-02', valid_to: '2024-01-03'}
+
+  - name: test_extend_scd2_history__different_record_on_prev_day
+    model: pass_through_model
+    given:
+      - input: source('src_fixture', 'data')
+        format: sql
+        rows: |
+          {% raw %}
+          with
+            scd1_prev_day as (
+              select * from values
+                (2, 'a')
+                  as t(id, val)
+            ),
+            scd2_table as (
+              select * from values
+                (1, 'b', '2024-01-02' :: date, '2024-01-03' :: date)
+                  as t(id, val, valid_from, valid_to)
+            )
+          select * from ({{ macro_lib.extend_scd2_history(
+            relation_scd2='scd2_table',
+            relation_scd1='scd1_prev_day',
+            primary_key=['id'],
+            scd1_date='2024-01-01',
+            scd2_begin_date='2024-01-02',
+            scd1_cols_to_merge=['id', 'val'],
+          ) }})
+          {% endraw %}
+    expect:
+      rows:
+        - {id: 1, val: 'b', valid_from: '2024-01-02', valid_to: '2024-01-03'}
+        - {id: 2, val: 'a', valid_from: '2024-01-01', valid_to: '2024-01-02'}
+
+  - name: test_extend_scd2_history__same_value_on_prev_day
+    model: pass_through_model
+    given:
+      - input: source('src_fixture', 'data')
+        format: sql
+        rows: |
+          {% raw %}
+          with
+            scd1_prev_day as (
+              select * from values
+                (1, 'b')
+                  as t(id, val)
+            ),
+            scd2_table as (
+              select * from values
+                (1, 'b', '2024-01-02' :: date, '2024-01-03' :: date)
+                  as t(id, val, valid_from, valid_to)
+            )
+          select * from ({{ macro_lib.extend_scd2_history(
+            relation_scd2='scd2_table',
+            relation_scd1='scd1_prev_day',
+            primary_key=['id'],
+            scd1_date='2024-01-01',
+            scd2_begin_date='2024-01-02',
+            scd1_cols_to_merge=['id', 'val'],
+          ) }})
+          {% endraw %}
+    expect:
+      rows:
+        - {id: 1, val: 'b', valid_from: '2024-01-01', valid_to: '2024-01-03'}
+
+  - name: test_extend_scd2_history__multiple_records_in_future
+    model: pass_through_model
+    given:
+      - input: source('src_fixture', 'data')
+        format: sql
+        rows: |
+          {% raw %}
+          with
+            scd1_prev_day as (
+              select * from values
+                (1, 'b')
+                  as t(id, val)
+            ),
+            scd2_table as (
+              select * from values
+                (1, 'a', '2024-01-02' :: date, '2024-01-03' :: date),
+                (1, 'c', '2024-01-03' :: date, '2024-01-04' :: date)
+                  as t(id, val, valid_from, valid_to)
+            )
+          select * from ({{ macro_lib.extend_scd2_history(
+            relation_scd2='scd2_table',
+            relation_scd1='scd1_prev_day',
+            primary_key=['id'],
+            scd1_date='2024-01-01',
+            scd2_begin_date='2024-01-02',
+            scd1_cols_to_merge=['id', 'val'],
+          ) }})
+          {% endraw %}
+    expect:
+      rows:
+        - {id: 1, val: 'b', valid_from: '2024-01-01', valid_to: '2024-01-02'}
+        - {id: 1, val: 'a', valid_from: '2024-01-02', valid_to: '2024-01-03'}
+        - {id: 1, val: 'c', valid_from: '2024-01-03', valid_to: '2024-01-04'}
+
+  - name: test_extend_scd2_history__same_record_non_adjacent_dates
+    model: pass_through_model
+    given:
+      - input: source('src_fixture', 'data')
+        format: sql
+        rows: |
+          {% raw %}
+          with
+            scd1_prev_day as (
+              select * from values
+                (1, 'b')
+                  as t(id, val)
+            ),
+            scd2_table as (
+              select * from values
+                (1, 'b', '2024-01-03' :: date, '2024-01-04' :: date)
+                  as t(id, val, valid_from, valid_to)
+            )
+          select * from ({{ macro_lib.extend_scd2_history(
+            relation_scd2='scd2_table',
+            relation_scd1='scd1_prev_day',
+            primary_key=['id'],
+            scd1_date='2024-01-01',
+            scd2_begin_date='2024-01-02',
+            scd1_cols_to_merge=['id', 'val'],
+          ) }})
+          {% endraw %}
+    expect:
+      rows:
+        - {id: 1, val: 'b', valid_from: '2024-01-01', valid_to: '2024-01-02'}
+        - {id: 1, val: 'b', valid_from: '2024-01-03', valid_to: '2024-01-04'}
+
+  - name: test_extend_scd2_history__multiple_primary_keys
+    model: pass_through_model
+    given:
+      - input: source('src_fixture', 'data')
+        format: sql
+        rows: |
+          {% raw %}
+          with
+            scd1_prev_day as (
+              select * from values
+                (1, 1, 'b'),
+                  as t(id, sub_id, val)
+            ),
+            scd2_table as (
+              select * from values
+                (1, 1, 'b', '2024-01-02' :: date, '2024-01-03' :: date),
+                (1, 2, 'c', '2024-01-02' :: date, '2024-01-03' :: date)
+                  as t(id, sub_id, val, valid_from, valid_to)
+            )
+          select * from ({{ macro_lib.extend_scd2_history(
+            relation_scd2='scd2_table',
+            relation_scd1='scd1_prev_day',
+            primary_key=['id', 'sub_id'],
+            scd1_date='2024-01-01',
+            scd2_begin_date='2024-01-02',
+            scd1_cols_to_merge=['id', 'sub_id', 'val'],
+          ) }})
+          {% endraw %}
+    expect:
+      rows:
+        - {id: 1, sub_id: 1, val: 'b', valid_from: '2024-01-01', valid_to: '2024-01-03'}
+        - {id: 1, sub_id: 2, val: 'c', valid_from: '2024-01-02', valid_to: '2024-01-03'}
