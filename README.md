@@ -3,8 +3,7 @@
 
 ## Prerequisites
 
-* Python 3.12
-* (optional) uv
+* [mise](https://mise.jdx.dev/)
 
 ## Project structure
 
@@ -24,9 +23,8 @@ flowchart LR
 ## Setup
 
 ```sh
-python -m venv .venv
-source .venv/bin/activate
-uv pip install -r requirements.txt
+mise install
+uv sync
 
 # Install macro-lib as a package to the main project and the test project.
 dbt deps
@@ -50,10 +48,3 @@ dbt test --project-dir macro-test
 Subprojects (we call them scenarios) have their directories prefixed with `sce_N__` (abbreviation for "scenario N").
 
 For more details, refer to each scenario's [docs](/docs).
-
-## Upgrading dependencies
-
-```sh
-uv pip compile requirements.in -o requirements.txt
-uv pip install -r requirements.txt
-```
